@@ -899,7 +899,7 @@ void CleanupItems(int ii)
 
 	if (CornerStone.isAvailable() && item.position == CornerStone.position) {
 		CornerStone.item.clear();
-		CornerStone.item._iSelFlag = 0;
+		CornerStone.item.selectionRegion = SelectionRegion::None;
 		CornerStone.item.position = { 0, 0 };
 		CornerStone.item._iAnimFlag = false;
 		CornerStone.item._iIdentified = false;
@@ -938,8 +938,8 @@ void StartGoldDrop()
 	    ? myPlayer.InvList[invIndex - INVITEM_INV_FIRST]._ivalue
 	    : myPlayer.SpdList[invIndex - INVITEM_BELT_FIRST]._ivalue;
 
-	if (talkflag)
-		control_reset_talk();
+	if (ChatFlag)
+		ResetChat();
 
 	Point start = GetPanelPosition(UiPanels::Inventory, { 67, 128 });
 	SDL_Rect rect = MakeSdlRect(start.x, start.y, 180, 20);
@@ -1124,7 +1124,7 @@ void DrawInv(const Surface &out)
 
 void DrawInvBelt(const Surface &out)
 {
-	if (talkflag) {
+	if (ChatFlag) {
 		return;
 	}
 
@@ -1297,18 +1297,10 @@ bool AutoPlaceItemInInventory(Player &player, const Item &item, bool persistItem
 	}
 
 	if (itemSize.height == 2) {
-		for (int x = 10 - itemSize.width; x >= 0; x -= itemSize.width) {
+		for (int x = 10 - itemSize.width; x >= 0; x--) {
 			for (int y = 0; y < 3; y++) {
 				if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem, sendNetworkMessage))
 					return true;
-			}
-		}
-		if (itemSize.width == 2) {
-			for (int x = 7; x >= 0; x -= 2) {
-				for (int y = 0; y < 3; y++) {
-					if (AutoPlaceItemInInventorySlot(player, 10 * y + x, item, persistItem, sendNetworkMessage))
-						return true;
-				}
 			}
 		}
 		return false;
@@ -2007,7 +1999,7 @@ bool UseInvItem(int cii)
 		return true;
 	if (pcurs != CURSOR_HAND)
 		return true;
-	if (stextflag != TalkID::None)
+	if (ActiveStore != TalkID::None)
 		return true;
 	if (cii < INVITEM_INV_FIRST)
 		return false;
@@ -2019,7 +2011,7 @@ bool UseInvItem(int cii)
 		c = cii - INVITEM_INV_FIRST;
 		item = &player.InvList[c];
 	} else {
-		if (talkflag)
+		if (ChatFlag)
 			return true;
 		c = cii - INVITEM_BELT_FIRST;
 

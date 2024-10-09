@@ -58,12 +58,6 @@ namespace devilution {
 
 namespace {
 
-#if defined(__ANDROID__) || defined(__APPLE__)
-constexpr OptionEntryFlags OnlyIfNoImplicitRenderer = OptionEntryFlags::Invisible;
-#else
-constexpr OptionEntryFlags OnlyIfNoImplicitRenderer = OptionEntryFlags::None;
-#endif
-
 #if defined(__ANDROID__) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE == 1)
 constexpr OptionEntryFlags OnlyIfSupportsWindowed = OptionEntryFlags::Invisible;
 #else
@@ -953,7 +947,7 @@ GraphicsOptions::GraphicsOptions()
     , fitToScreen("Fit to Screen", OptionEntryFlags::CantChangeInGame | OptionEntryFlags::RecreateUI, N_("Fit to Screen"), N_("Automatically adjust the game window to your current desktop screen aspect ratio and resolution."), true)
 #endif
 #ifndef USE_SDL1
-    , upscale("Upscale", OnlyIfNoImplicitRenderer | OptionEntryFlags::CantChangeInGame | OptionEntryFlags::RecreateUI, N_("Upscale"), N_("Enables image scaling from the game resolution to your monitor resolution. Prevents changing the monitor resolution and allows window resizing."),
+    , upscale("Upscale", OptionEntryFlags::Invisible | OptionEntryFlags::CantChangeInGame | OptionEntryFlags::RecreateUI, N_("Upscale"), N_("Enables image scaling from the game resolution to your monitor resolution. Prevents changing the monitor resolution and allows window resizing."),
 #ifdef NXDK
           false
 #else
@@ -1000,7 +994,6 @@ GraphicsOptions::GraphicsOptions()
 	fitToScreen.SetValueChangedCallback(ResizeWindowAndUpdateResolutionOptions);
 #endif
 #ifndef USE_SDL1
-	upscale.SetValueChangedCallback(ResizeWindowAndUpdateResolutionOptions);
 	scaleQuality.SetValueChangedCallback(ReinitializeTexture);
 	integerScaling.SetValueChangedCallback(ReinitializeIntegerScale);
 	vSync.SetValueChangedCallback(ReinitializeRenderer);
@@ -1500,7 +1493,7 @@ void KeymapperOptions::KeyPressed(uint32_t key) const
 
 	// Check that the action can be triggered and that the chat textbox is not
 	// open.
-	if (!action.actionPressed || (action.enable && !action.enable()) || talkflag)
+	if (!action.actionPressed || (action.enable && !action.enable()) || ChatFlag)
 		return;
 
 	action.actionPressed();
@@ -1519,7 +1512,7 @@ void KeymapperOptions::KeyReleased(SDL_Keycode key) const
 
 	// Check that the action can be triggered and that the chat or gold textbox is not
 	// open. If either of those textboxes are open, only return if the key can be used for entry into the box
-	if (!action.actionReleased || (action.enable && !action.enable()) || ((talkflag && IsTextEntryKey(key)) || (dropGoldFlag && IsNumberEntryKey(key))))
+	if (!action.actionReleased || (action.enable && !action.enable()) || ((ChatFlag && IsTextEntryKey(key)) || (DropGoldFlag && IsNumberEntryKey(key))))
 		return;
 
 	action.actionReleased();
@@ -1874,7 +1867,7 @@ bool PadmapperOptions::CanDeferToMovementHandler(const Action &action) const
 	if (action.boundInput.modifier != ControllerButton_NONE)
 		return false;
 
-	if (spselflag) {
+	if (SpellSelectFlag) {
 		const std::string_view prefix { "QuickSpell" };
 		const std::string_view key { action.key };
 		if (key.size() >= prefix.size()) {

@@ -114,6 +114,20 @@ void GenerateBlendedLookupTable(std::array<SDL_Color, 256> &palette, int skipFro
 #endif
 }
 
+#if DEVILUTIONX_PALETTE_TRANSPARENCY_BLACK_16_LUT
+void UpdateTransparencyLookupBlack16(int from, int to)
+{
+	for (int i = from; i <= to; i++) {
+		for (int j = 0; j < 256; j++) {
+			const std::uint16_t index = i | (j << 8);
+			const std::uint16_t reverseIndex = j | (i << 8);
+			paletteTransparencyLookupBlack16[index] = paletteTransparencyLookup[0][i] | (paletteTransparencyLookup[0][j] << 8);
+			paletteTransparencyLookupBlack16[reverseIndex] = paletteTransparencyLookup[0][j] | (paletteTransparencyLookup[0][i] << 8);
+		}
+	}
+}
+#endif
+
 /**
  * @brief Cycle the given range of colors in the palette
  * @param from First color index of the range
@@ -128,6 +142,10 @@ void CycleColors(int from, int to)
 	}
 
 	std::rotate(&paletteTransparencyLookup[from][0], &paletteTransparencyLookup[from + 1][0], &paletteTransparencyLookup[to + 1][0]);
+
+#if DEVILUTIONX_PALETTE_TRANSPARENCY_BLACK_16_LUT
+	UpdateTransparencyLookupBlack16(from, to);
+#endif
 }
 
 /**
@@ -144,6 +162,10 @@ void CycleColorsReverse(int from, int to)
 	}
 
 	std::rotate(&paletteTransparencyLookup[from][0], &paletteTransparencyLookup[to][0], &paletteTransparencyLookup[to + 1][0]);
+
+#if DEVILUTIONX_PALETTE_TRANSPARENCY_BLACK_16_LUT
+	UpdateTransparencyLookupBlack16(from, to);
+#endif
 }
 
 } // namespace
@@ -162,12 +184,12 @@ void palette_update(int first, int ncolor)
 
 void ApplyGamma(std::array<SDL_Color, 256> &dst, const std::array<SDL_Color, 256> &src, int n)
 {
-	double g = *sgOptions.Graphics.gammaCorrection / 100.0;
+	float g = *sgOptions.Graphics.gammaCorrection / 100.0F;
 
 	for (int i = 0; i < n; i++) {
-		dst[i].r = static_cast<Uint8>(pow(src[i].r / 256.0, g) * 256.0);
-		dst[i].g = static_cast<Uint8>(pow(src[i].g / 256.0, g) * 256.0);
-		dst[i].b = static_cast<Uint8>(pow(src[i].b / 256.0, g) * 256.0);
+		dst[i].r = static_cast<Uint8>(pow(src[i].r / 256.0F, g) * 256.0F);
+		dst[i].g = static_cast<Uint8>(pow(src[i].g / 256.0F, g) * 256.0F);
+		dst[i].b = static_cast<Uint8>(pow(src[i].b / 256.0F, g) * 256.0F);
 	}
 	RedrawEverything();
 }
@@ -426,6 +448,10 @@ void palette_update_quest_palette(int n)
 		Uint8 best = FindBestMatchForColor(logical_palette, blendedColor, 1, 31);
 		paletteTransparencyLookup[i][j] = paletteTransparencyLookup[j][i] = best;
 	}
+
+#if DEVILUTIONX_PALETTE_TRANSPARENCY_BLACK_16_LUT
+	UpdateTransparencyLookupBlack16(i, i);
+#endif
 }
 
 } // namespace devilution

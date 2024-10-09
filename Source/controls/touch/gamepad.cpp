@@ -12,40 +12,40 @@ VirtualGamepad VirtualGamepadState;
 
 namespace {
 
-constexpr double Pi = 3.141592653589793;
+constexpr float Pi = 3.141592653589793F;
 
-int roundToInt(double value)
+int roundToInt(float value)
 {
 	return static_cast<int>(round(value));
 }
 
-constexpr bool PointsUp(double angle)
+constexpr bool PointsUp(float angle)
 {
-	constexpr double UpAngle = Pi / 2;
-	constexpr double MinAngle = UpAngle - 3 * Pi / 8;
-	constexpr double MaxAngle = UpAngle + 3 * Pi / 8;
+	constexpr float UpAngle = Pi / 2;
+	constexpr float MinAngle = UpAngle - 3 * Pi / 8;
+	constexpr float MaxAngle = UpAngle + 3 * Pi / 8;
 	return MinAngle <= angle && angle <= MaxAngle;
 }
 
-constexpr bool PointsDown(double angle)
+constexpr bool PointsDown(float angle)
 {
-	constexpr double DownAngle = -Pi / 2;
-	constexpr double MinAngle = DownAngle - 3 * Pi / 8;
-	constexpr double MaxAngle = DownAngle + 3 * Pi / 8;
+	constexpr float DownAngle = -Pi / 2;
+	constexpr float MinAngle = DownAngle - 3 * Pi / 8;
+	constexpr float MaxAngle = DownAngle + 3 * Pi / 8;
 	return MinAngle <= angle && angle <= MaxAngle;
 }
 
-constexpr bool PointsLeft(double angle)
+constexpr bool PointsLeft(float angle)
 {
-	constexpr double MaxAngle = Pi - 3 * Pi / 8;
-	constexpr double MinAngle = -Pi + 3 * Pi / 8;
+	constexpr float MaxAngle = Pi - 3 * Pi / 8;
+	constexpr float MinAngle = -Pi + 3 * Pi / 8;
 	return !(MinAngle < angle && angle < MaxAngle);
 }
 
-constexpr bool PointsRight(double angle)
+constexpr bool PointsRight(float angle)
 {
-	constexpr double MinAngle = -3 * Pi / 8;
-	constexpr double MaxAngle = 3 * Pi / 8;
+	constexpr float MinAngle = -3 * Pi / 8;
+	constexpr float MaxAngle = 3 * Pi / 8;
 	return MinAngle <= angle && angle <= MaxAngle;
 }
 
@@ -166,14 +166,14 @@ void InitializeVirtualGamepad()
 	healthButtonArea.position.x = directionPad.area.position.x - (padButtonSize + padButtonSpacing) / 2;
 	healthButtonArea.position.y = directionPad.area.position.y - (directionPadSize + padButtonSize + padButtonSpacing) / 2;
 	healthButtonArea.radius = padButtonSize / 2;
-	healthButton.isUsable = []() { return !chrflag && !QuestLogIsOpen; };
+	healthButton.isUsable = []() { return !CharFlag && !QuestLogIsOpen; };
 
 	VirtualPadButton &manaButton = VirtualGamepadState.manaButton;
 	Circle &manaButtonArea = manaButton.area;
 	manaButtonArea.position.x = directionPad.area.position.x + (padButtonSize + padButtonSpacing) / 2;
 	manaButtonArea.position.y = directionPad.area.position.y - (directionPadSize + padButtonSize + padButtonSpacing) / 2;
 	manaButtonArea.radius = padButtonSize / 2;
-	manaButton.isUsable = []() { return !chrflag && !QuestLogIsOpen; };
+	manaButton.isUsable = []() { return !CharFlag && !QuestLogIsOpen; };
 }
 
 void ActivateVirtualGamepad()
@@ -227,14 +227,14 @@ void VirtualDirectionPad::UpdatePosition(Point touchCoordinates)
 	if (!area.contains(position)) {
 		int x = diff.deltaX;
 		int y = diff.deltaY;
-		double dist = sqrt(x * x + y * y);
+		float dist = sqrt(x * x + y * y);
 		x = roundToInt(x * area.radius / dist);
 		y = roundToInt(y * area.radius / dist);
 		position.x = area.position.x + x;
 		position.y = area.position.y + y;
 	}
 
-	double angle = atan2(-diff.deltaY, diff.deltaX);
+	float angle = atan2(-diff.deltaY, diff.deltaX);
 
 	isUpPressed = PointsUp(angle);
 	isDownPressed = PointsDown(angle);
